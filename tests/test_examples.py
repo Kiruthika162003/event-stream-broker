@@ -7,6 +7,7 @@ from examples import (
     operationsday,
     rebalanceday,
     retentionday,
+    securityday,
     upgradeday,
     wireformatday,
 )
@@ -95,3 +96,14 @@ class TestRebalanceDay:
         assert "stable heartbeat -> acknowledged" in out
         assert "newcomer joined -> rebalance-in-progress" in out
         assert "3 partition(s) paused for nothing (75%)" in out
+
+
+class TestSecurityDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert securityday.main() == 0
+        out = capsys.readouterr().out
+        assert "authentication complete after 2 round(s)" in out
+        assert "mapped to 'alice' by rule 0" in out
+        assert "authenticated by delegation token" in out
+        assert "re-authenticated 'alice'; session now to 300" in out
+        assert "at its per-IP cap 2" in out
