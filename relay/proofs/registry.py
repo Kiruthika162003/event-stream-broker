@@ -14,6 +14,7 @@ PROOFS = (
     "relay.proofs.stickymoves",
     "relay.proofs.nolostcommit",
     "relay.proofs.orderunderretry",
+    "relay.proofs.integrityholds",
 )
 
 

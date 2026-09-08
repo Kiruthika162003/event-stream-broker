@@ -15,3 +15,14 @@ class TestTheProofs:
         for finding in registry.all_findings():
             assert finding.claim
             assert finding.numbers
+
+    def test_the_integrity_proof_misses_no_bit_flip(self):
+        from relay.proofs import integrityholds
+
+        finding = integrityholds.run()
+        assert finding.holds
+        assert finding.numbers["flips_missed"] == 0
+        assert (
+            finding.numbers["flips_caught"]
+            == finding.numbers["positions_tested"]
+        )
