@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from relay.proofs import registry
+from relay.proofs import integrityholds, registry
 
 
 class TestTheProofs:
@@ -17,8 +17,6 @@ class TestTheProofs:
             assert finding.numbers
 
     def test_the_integrity_proof_misses_no_bit_flip(self):
-        from relay.proofs import integrityholds
-
         finding = integrityholds.run()
         assert finding.holds
         assert finding.numbers["flips_missed"] == 0
