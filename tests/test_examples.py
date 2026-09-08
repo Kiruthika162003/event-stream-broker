@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from examples import failoverday, firststream
+from examples import failoverday, firststream, operationsday
 
 
 class TestFirstStream:
@@ -22,3 +22,14 @@ class TestFailoverDay:
         assert "pace-setter b2 at 980 (20 behind the leader)" in out
         assert "b3 elected at epoch 8" in out
         assert "discarded 40 unpromised record(s)" in out
+
+
+class TestOperationsDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert operationsday.main() == 0
+        out = capsys.readouterr().out
+        assert "400 bytes over, delayed 4 tick(s)" in out
+        assert "draining, empty in about 60 tick(s)" in out
+        assert "revoked 4 partition(s)" in out
+        assert "no partition was ever owned by two" in out
+        assert "900 reclaimed for 1000 processed (90%)" in out
