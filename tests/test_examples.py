@@ -5,6 +5,7 @@ from examples import (
     failoverday,
     firststream,
     operationsday,
+    retentionday,
 )
 
 
@@ -48,3 +49,13 @@ class TestExactlyOnceDay:
         assert "payer committed at epoch 0" in out
         assert "replays only unshipped input" in out
         assert "read-committed stops at 940" in out
+
+
+class TestRetentionDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert retentionday.main() == 0
+        out = capsys.readouterr().out
+        assert "roll by age" in out
+        assert "4 records compact to 2 (2.0x)" in out
+        assert "held on the clock" in out
+        assert "deleted 400 record(s) from 100 to 500" in out
