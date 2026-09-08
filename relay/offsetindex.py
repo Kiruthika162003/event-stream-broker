@@ -1,25 +1,32 @@
-"""The offset index: find a record without walking the log to it.
+"""Offset index: a sparse map from offset to file position, searched by halving.
 
-A segment holds thousands of records, and a consumer that
-seeks to offset 8_412 should not read 8_411 records to get
-there. The index is a sparse map from offset to byte position,
-one entry every N records, so a lookup binary-searches the
-sparse entries to the nearest indexed offset at or below the
-target, then scans forward a bounded number of records. Sparse
-is the deliberate choice: a dense index would rival the log in
-size and double every write's cost, while a sparse index adds a
-bounded scan in exchange for a fraction of the memory, and the
-interval is the knob between seek latency and index size that
-the report makes visible rather than magic. The index is
-rebuildable from the log by construction, never the source of
-truth, because an index that can disagree with the log is a
-second truth, and the first rule of this broker is that the log
-is the only truth.
+A fetch names a starting offset, and the broker must turn that
+logical offset into a physical byte position in the segment file
+so it can seek there and start reading, and scanning the whole
+segment from the front to find it would make every fetch cost the
+whole log. The offset index avoids the scan by keeping, for a
+sparse subset of records, a pair of offset and file position, so a
+fetch binary-searches the index for the largest indexed offset not
+past the target, seeks to its position, and scans forward only the
+short distance from there to the target. Sparse is the deliberate
+choice: indexing every record would make the index as large as the
+log, so it indexes roughly one record per index-interval bytes,
+trading a bounded forward scan for an index small enough to keep in
+memory. The search returns a floor, the largest indexed offset at
+or below the target, because the target itself is usually not
+indexed and the reader must land at or before it and scan the
+rest, never after it, since landing after would skip records. The
+index refuses an offset below its base, which belongs to an
+already-deleted segment, and an empty index returns the segment
+start, because a segment with no indexed entries yet is scanned
+from the front, which is cheap while it is short. The report
+states the average scan distance the sparsity implies, because an
+index interval too large turns every fetch into a long forward
+scan the index was supposed to prevent.
 """
 
 from __future__ import annotations
 
-import bisect
 from dataclasses import dataclass, field
 
 from relay.errors import Invalid, Missing
@@ -28,54 +35,50 @@ from relay.errors import Invalid, Missing
 @dataclass
 class OffsetIndex:
     base_offset: int
-    interval: int
+    interval_bytes: int = 4096
     entries: list[tuple[int, int]] = field(default_factory=list)
-    records_seen: int = 0
 
     def __post_init__(self) -> None:
-        if self.interval < 1:
-            raise Invalid("the index interval must be positive")
+        if self.interval_bytes < 1:
+            raise Invalid("index interval must be positive")
 
-    def on_append(self, offset: int, position: int) -> None:
-        if self.records_seen % self.interval == 0:
-            self.entries.append((offset, position))
-        self.records_seen += 1
-
-    def seek(self, target: int) -> tuple[int, int]:
-        if not self.entries:
-            raise Missing("the index is empty")
-        if target < self.entries[0][0]:
-            raise Missing(
-                f"offset {target} is below the first indexed "
-                f"offset {self.entries[0][0]}"
+    def add(self, offset: int, position: int) -> None:
+        if offset < self.base_offset:
+            raise Invalid(
+                f"offset {offset} is below the segment base "
+                f"{self.base_offset}; it belongs to a deleted "
+                "segment, not this one"
             )
-        offsets = [entry[0] for entry in self.entries]
-        slot = bisect.bisect_right(offsets, target) - 1
-        indexed_offset, position = self.entries[slot]
-        scan = target - indexed_offset
-        return position, scan
+        if self.entries and offset <= self.entries[-1][0]:
+            raise Invalid(
+                "index entries must be strictly increasing; a "
+                "record cannot index behind the last one"
+            )
+        self.entries.append((offset, position))
 
-    def scan_bound(self) -> int:
-        return self.interval - 1
+    def floor_position(self, target: int) -> int:
+        if target < self.base_offset:
+            raise Missing(
+                f"offset {target} predates this segment's base "
+                f"{self.base_offset}; look in an earlier segment"
+            )
+        low, high, found = 0, len(self.entries) - 1, 0
+        while low <= high:
+            mid = (low + high) // 2
+            if self.entries[mid][0] <= target:
+                found = self.entries[mid][1]
+                low = mid + 1
+            else:
+                high = mid - 1
+        return found
 
-    def report(self) -> str:
-        density = (
-            self.records_seen / len(self.entries)
-            if self.entries
-            else 0
-        )
+    def average_scan(self, record_bytes: int) -> str:
+        if record_bytes < 1:
+            raise Invalid("record size must be positive")
+        records_per_entry = max(1, self.interval_bytes // record_bytes)
         return (
-            f"{len(self.entries)} index entrie(s) for "
-            f"{self.records_seen} record(s) "
-            f"(1 per {density:.0f}), worst-case scan "
-            f"{self.scan_bound()} record(s); the interval is "
-            "the knob between seek latency and index size"
+            f"an index entry every {self.interval_bytes} byte(s) "
+            f"means a fetch scans forward ~{records_per_entry} "
+            "record(s) on average; too wide an interval turns the "
+            "fetch into the long scan the index was to prevent"
         )
-
-    def rebuild_from(
-        self, records: list[tuple[int, int]]
-    ) -> None:
-        self.entries = []
-        self.records_seen = 0
-        for offset, position in records:
-            self.on_append(offset, position)
