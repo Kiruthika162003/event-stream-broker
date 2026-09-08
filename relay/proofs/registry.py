@@ -8,6 +8,7 @@ from relay.proofs.finding import Finding
 
 PROOFS = (
     "relay.proofs.watermarkholds",
+    "relay.proofs.exactlyonce",
 )
 
 
