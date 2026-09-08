@@ -11,6 +11,7 @@ PROOFS = (
     "relay.proofs.exactlyonce",
     "relay.proofs.nostall",
     "relay.proofs.retentionfloor",
+    "relay.proofs.stickymoves",
 )
 
 
