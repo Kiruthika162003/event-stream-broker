@@ -5,6 +5,7 @@ from relay.proofs import (
     bloomholds,
     framingholds,
     integrityholds,
+    nosplitbrain,
     registry,
     throttleholds,
 )
@@ -53,3 +54,9 @@ class TestTheProofs:
         finding = bloomholds.run()
         assert finding.holds
         assert finding.numbers["false_negatives"] == 0
+
+    def test_the_split_brain_proof_shows_the_one_voter_rule(self):
+        finding = nosplitbrain.run()
+        assert finding.holds
+        assert finding.numbers["single_voter_disjoint_majority_pairs"] == 0
+        assert finding.numbers["two_voter_disjoint_majority_pairs"] > 0

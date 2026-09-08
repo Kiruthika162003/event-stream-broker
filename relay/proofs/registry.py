@@ -19,6 +19,7 @@ PROOFS = (
     "relay.proofs.framingholds",
     "relay.proofs.aggregateholds",
     "relay.proofs.bloomholds",
+    "relay.proofs.nosplitbrain",
 )
 
 
