@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from relay.proofs import integrityholds, registry
+from relay.proofs import integrityholds, registry, throttleholds
 
 
 class TestTheProofs:
@@ -24,3 +24,8 @@ class TestTheProofs:
             finding.numbers["flips_caught"]
             == finding.numbers["positions_tested"]
         )
+
+    def test_the_throttle_proof_does_not_beat_the_refill(self):
+        finding = throttleholds.run()
+        assert finding.holds
+        assert finding.numbers["overshoot"] <= 0
