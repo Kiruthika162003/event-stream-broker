@@ -6,6 +6,7 @@ from examples import (
     firststream,
     operationsday,
     retentionday,
+    upgradeday,
 )
 
 
@@ -59,3 +60,13 @@ class TestRetentionDay:
         assert "4 records compact to 2 (2.0x)" in out
         assert "held on the clock" in out
         assert "deleted 400 record(s) from 100 to 500" in out
+
+
+class TestUpgradeDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert upgradeday.main() == 0
+        out = capsys.readouterr().out
+        assert "fetch negotiated at v6" in out
+        assert "transactions enabled" in out
+        assert "2 of 2 partition(s) handed off" in out
+        assert "controller b2 at epoch 8, 1 stale change(s) fenced" in out
