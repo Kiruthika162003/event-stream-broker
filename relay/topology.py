@@ -61,7 +61,7 @@ class Topology:
             path.append(node)
             for nxt in self.edges.get(node, []):
                 if color[nxt] == _GRAY:
-                    return path[path.index(nxt):] + [nxt]
+                    return [*path[path.index(nxt):], nxt]
                 if color[nxt] == _WHITE:
                     found = walk(nxt)
                     if found:
