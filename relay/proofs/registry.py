@@ -12,6 +12,7 @@ PROOFS = (
     "relay.proofs.nostall",
     "relay.proofs.retentionfloor",
     "relay.proofs.stickymoves",
+    "relay.proofs.nolostcommit",
 )
 
 
