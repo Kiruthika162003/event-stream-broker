@@ -5,6 +5,7 @@ from examples import (
     failoverday,
     firststream,
     operationsday,
+    rebalanceday,
     retentionday,
     upgradeday,
     wireformatday,
@@ -83,3 +84,14 @@ class TestWireFormatDay:
         assert "the batch is corrupt and must be refused" in out
         assert "record 2 is offset 1002, next base 1005" in out
         assert "2 offset slot(s) consumed" in out
+
+
+class TestRebalanceDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert rebalanceday.main() == 0
+        out = capsys.readouterr().out
+        assert "leader c1, strategy range" in out
+        assert "c2 gets [2, 3]" in out
+        assert "stable heartbeat -> acknowledged" in out
+        assert "newcomer joined -> rebalance-in-progress" in out
+        assert "3 partition(s) paused for nothing (75%)" in out
