@@ -8,6 +8,7 @@ from examples import (
     rebalanceday,
     retentionday,
     securityday,
+    streamsday,
     upgradeday,
     wireformatday,
 )
@@ -107,3 +108,13 @@ class TestSecurityDay:
         assert "authenticated by delegation token" in out
         assert "re-authenticated 'alice'; session now to 300" in out
         assert "at its per-IP cap 2" in out
+
+
+class TestStreamsDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert streamsday.main() == 0
+        out = capsys.readouterr().out
+        assert "extracted 1000, missing fell back to 9999" in out
+        assert "watermark at 115" in out
+        assert "table now {'cust2': 9}" in out
+        assert "early emit [], final emit [(100, 3)]" in out
