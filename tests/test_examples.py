@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from examples import (
+    consensusday,
     exactlyonceday,
     failoverday,
     firststream,
@@ -118,3 +119,14 @@ class TestStreamsDay:
         assert "watermark at 115" in out
         assert "table now {'cust2': 9}" in out
         assert "early emit [], final emit [(100, 3)]" in out
+
+
+class TestConsensusDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert consensusday.main() == 0
+        out = capsys.readouterr().out
+        assert "won term 4: 2/3, majority 2" in out
+        assert "divergent tail truncated" in out
+        assert "committed to index 3" in out
+        assert "linearizable read served as of index 100" in out
+        assert "changed by one voter; majority 2 -> 3" in out
