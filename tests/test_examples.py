@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from examples import failoverday, firststream, operationsday
+from examples import (
+    exactlyonceday,
+    failoverday,
+    firststream,
+    operationsday,
+)
 
 
 class TestFirstStream:
@@ -33,3 +38,13 @@ class TestOperationsDay:
         assert "revoked 4 partition(s)" in out
         assert "no partition was ever owned by two" in out
         assert "900 reclaimed for 1000 processed (90%)" in out
+
+
+class TestExactlyOnceDay:
+    def test_the_day_reads_end_to_end(self, capsys):
+        assert exactlyonceday.main() == 0
+        out = capsys.readouterr().out
+        assert "4 accepted, 3 duplicates absorbed" in out
+        assert "payer committed at epoch 0" in out
+        assert "replays only unshipped input" in out
+        assert "read-committed stops at 940" in out
