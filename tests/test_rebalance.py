@@ -14,7 +14,7 @@ PARTS = list(range(12))
 class TestBalance:
     def test_the_first_assignment_is_balanced(self):
         assignment, _ = sticky_assign(PARTS, ["c1", "c2", "c3"])
-        assert assignment.balanced(12)
+        assert assignment.balanced()
         assert all(
             len(v) == 4 for v in assignment.by_member.values()
         )
@@ -40,7 +40,7 @@ class TestStickiness:
             PARTS, ["c1", "c2", "c3", "c4"], previous=first
         )
         assert moved == 3
-        assert second.balanced(12)
+        assert second.balanced()
 
     def test_sticky_beats_naive_on_the_same_change(self):
         first, _ = sticky_assign(PARTS, ["c1", "c2", "c3"])

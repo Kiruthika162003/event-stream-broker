@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from relay.errors import Invalid
+
 
 def _balanced_counts(
     partitions: int, members: int
@@ -37,7 +39,7 @@ def _balanced_counts(
 class Assignment:
     by_member: dict[str, list[int]]
 
-    def balanced(self, partition_count: int) -> bool:
+    def balanced(self) -> bool:
         counts = sorted(
             len(v) for v in self.by_member.values()
         )
@@ -92,16 +94,18 @@ def sticky_assign(
             ),
         )
         result[target_member].append(part)
-        if kept_owner[part] not in (None, target_member) or (kept_owner[part] is None and previous is not None):
+        relocated = kept_owner[part] not in (None, target_member)
+        newly_placed = (
+            kept_owner[part] is None and previous is not None
+        )
+        if relocated or newly_placed:
             moved += 1
-    for member in result:
-        result[member].sort()
+    for parts in result.values():
+        parts.sort()
     return Assignment(by_member=result), moved
 
 
-def _no_members():
-    from relay.errors import Invalid
-
+def _no_members() -> Invalid:
     return Invalid("a group with no members owns no partitions")
 
 
