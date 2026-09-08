@@ -10,6 +10,7 @@ PROOFS = (
     "relay.proofs.watermarkholds",
     "relay.proofs.exactlyonce",
     "relay.proofs.nostall",
+    "relay.proofs.retentionfloor",
 )
 
 
