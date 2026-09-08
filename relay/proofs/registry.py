@@ -18,6 +18,7 @@ PROOFS = (
     "relay.proofs.throttleholds",
     "relay.proofs.framingholds",
     "relay.proofs.aggregateholds",
+    "relay.proofs.bloomholds",
 )
 
 

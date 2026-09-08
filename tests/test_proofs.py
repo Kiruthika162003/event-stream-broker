@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from relay.proofs import (
     aggregateholds,
+    bloomholds,
     framingholds,
     integrityholds,
     registry,
@@ -47,3 +48,8 @@ class TestTheProofs:
         assert finding.holds
         assert finding.numbers["all_groupings_agree"]
         assert finding.numbers["avg_trap_wrong_by"] > 0
+
+    def test_the_bloom_proof_has_no_false_negatives(self):
+        finding = bloomholds.run()
+        assert finding.holds
+        assert finding.numbers["false_negatives"] == 0
