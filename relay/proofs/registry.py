@@ -16,6 +16,7 @@ PROOFS = (
     "relay.proofs.orderunderretry",
     "relay.proofs.integrityholds",
     "relay.proofs.throttleholds",
+    "relay.proofs.framingholds",
 )
 
 

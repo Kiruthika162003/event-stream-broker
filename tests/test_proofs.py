@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from relay.proofs import integrityholds, registry, throttleholds
+from relay.proofs import (
+    framingholds,
+    integrityholds,
+    registry,
+    throttleholds,
+)
 
 
 class TestTheProofs:
@@ -29,3 +34,9 @@ class TestTheProofs:
         finding = throttleholds.run()
         assert finding.holds
         assert finding.numbers["overshoot"] <= 0
+
+    def test_the_framing_proof_agrees_at_every_split(self):
+        finding = framingholds.run()
+        assert finding.holds
+        assert finding.numbers["disagreements"] == 0
+        assert finding.numbers["drip_matches"]
