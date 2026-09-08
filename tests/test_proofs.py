@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from relay.proofs import (
+    aggregateholds,
     framingholds,
     integrityholds,
     registry,
@@ -40,3 +41,9 @@ class TestTheProofs:
         assert finding.holds
         assert finding.numbers["disagreements"] == 0
         assert finding.numbers["drip_matches"]
+
+    def test_the_aggregate_proof_agrees_across_groupings(self):
+        finding = aggregateholds.run()
+        assert finding.holds
+        assert finding.numbers["all_groupings_agree"]
+        assert finding.numbers["avg_trap_wrong_by"] > 0
