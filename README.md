@@ -152,7 +152,3 @@ way, by a test that disagreed with the code: an OR-set whose per-replica
 tags collided across replicas, and a segment-roll decision that keyed a
 dict by a value that could tie. Both are fixed, and both fixes are
 recorded in the commits that made them.
-
----
-
-Written by Kiruthika Subramani in collaboration with Claude, Anthropic's AI assistant.
